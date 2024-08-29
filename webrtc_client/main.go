@@ -29,6 +29,25 @@ func main() {
 		log.Fatalf("Failed to create PeerConnection: %v", err)
 	}
 
+	dataChannel, err := peerConnection.CreateDataChannel("data", nil)
+	if err != nil {
+		log.Fatalf("Failed to create DataChannel: %v", err)
+	}
+
+	dataChannel.OnOpen(func() {
+		log.Printf("DataChannel opened")
+		err := dataChannel.SendText("Hello from DC")
+		if err != nil {
+			log.Fatalf("Failed to send message: %v", err)
+		}
+
+		log.Println("Sent message: Hello from DC!")
+	})
+
+	dataChannel.OnMessage(func(msg webrtc.DataChannelMessage) {
+		log.Println("Received message: %v", string(msg.Data))
+	})
+
 	// Handle of ICE candidates
 	peerConnection.OnICECandidate(func(c *webrtc.ICECandidate) {
 		if c == nil {
@@ -36,6 +55,10 @@ func main() {
 		}
 
 		sendToSignalingServer(c.ToJSON())
+	})
+
+	peerConnection.OnICEConnectionStateChange(func(state webrtc.ICEConnectionState) {
+		log.Printf("ICE Connection State has changed: %s\n", state.String())
 	})
 
 	//Create offer and start connection
