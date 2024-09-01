@@ -7,6 +7,9 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+var clients = make(map[*websocket.Conn]bool)
+var broadCast = make(chan Message)
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -14,9 +17,6 @@ var upgrader = websocket.Upgrader{
 		return true
 	},
 }
-
-var clients = make(map[*websocket.Conn]bool)
-var broadCast = make(chan Message)
 
 type Message struct {
 	Type      string `json: "type"`
